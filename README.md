@@ -24,4 +24,4 @@ To toggle dark mode, click the brightness button in the top right corner. The We
 The Website Selector is built using HTML, CSS, JavaScript, and the Tailwind CSS framework. The project is open-source and available on GitHub.
 
 # Try it yourself at 
-**https://plutotin.github.io/searchenginepicker/**
+**https://plutotin.github.io/SearchEnginePicker/**
