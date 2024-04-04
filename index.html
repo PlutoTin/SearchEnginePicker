@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Website Selector</title>
+  <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet">
+  <style>
+    body.dark {
+      background-color: #1f2937;
+      color: #ffffff;
+    }
+
+    .container {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      width: 100vw;
+    }
+
+    .form-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .button-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-top: 20px;
+    }
+
+    .title {
+      color: #000000;
+    }
+
+    .title.dark {
+      color: #ffffff;
+    }
+
+    .dark-mode-switch {
+      display: flex;
+      align-items: center;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body class="bg-gray-100 font-sans">
+  <div class="container mx-auto px-4 py-8">
+    <h1 class="text-4xl font-bold mb-8 title">Website Selector</h1>
+    <form id="searchForm" action="#" class="form-container">
+      <input type="text" name="q" placeholder="Search for a website" class="w-full md:w-auto md:mr-4 p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+      <select name="search_engine" class="w-full md:w-auto md:mr-4 p-2 border border-gray-300 rounded-lg">
+        <option value="google">Google</option>
+        <option value="bing">Bing</option>
+        <option value="duckduckgo">DuckDuckGo</option>
+        <option value="yahoo">Yahoo</option>
+      </select>
+      <label for="openInNewTab" class="flex items-center md:mr-4">
+        <input type="checkbox" id="openInNewTab" name="openInNewTab" class="mr-2">
+        Open in new tab
+      </label>
+      <button type="submit" class="w-full md:w-auto p-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:outline-none">Search</button>
+    </form>
+    <div class="button-container">
+      <button type="button" class="w-full md:w-auto p-2 bg-green-500 text-white rounded-lg hover:bg-green-600 focus:outline-none mt-2 md:mt-0" id="addSearchEngineButton">Add Search Engine</button>
+      <button type="button" class="w-full md:w-auto p-2 bg-yellow-500 text-gray-800 rounded-lg hover:bg-yellow-600 focus:outline-none mt-2 md:mt-0" id="clearCustomSearchEnginesButton">Clear Custom Search Engines</button>
+      <button type="button" class="w-full md:w-auto p-2 bg-red-500 text-white rounded-lg hover:bg-red-600 focus:outline-none mt-2 md:mt-0" id="resetCustomSearchEnginesButton">Reset Custom Search Engines</button>
+    </div>
+    <div class="dark-mode-switch">
+      <button type="button" class="fixed top-4 right-4 p-2 bg-gray-200 rounded-full shadow-md" id="brightnessButton">
+        <svg class="w-8 h-8 text-gray-600" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M50 20A40 40 0 1 0 50 70 30 30 0 1 1 50 20z" stroke="black" stroke-width="2" fill="yellow"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <script>
+    // Handle form submission
+    const searchForm = document.getElementById('searchForm');
+    searchForm.addEventListener('submit', (event) => {
+      event.preventDefault();
+
+      const searchQuery = encodeURIComponent(searchForm.querySelector('input[name="q"]').value);
+      const searchEngine = searchForm.querySelector('select[name="search_engine"]').value;
+      const openInNewTab = searchForm.querySelector('input[name="openInNewTab"]').checked;
+
+      console.log(`Redirecting to ${searchEngine} with query: ${searchQuery}`);
+
+      // Redirect to different URLs based on selected search engine
+      switch (searchEngine) {
+        case 'google':
+          if (openInNewTab) {
+            window.open(`https://www.google.com/search?q=${searchQuery}`);
+          } else {
+            window.location.href = `https://www.google.com/search?q=${searchQuery}`;
+          }
+          break;
+        case 'bing':
+          if (openInNewTab) {
+            window.open(`https://www.bing.com/search?q=${searchQuery}`);
+          } else {
+            window.location.href = `https://www.bing.com/search?q=${searchQuery}`;
+          }
+          break;
+        case 'duckduckgo':
+          if (openInNewTab) {
+            window.open(`https://duckduckgo.com/?q=${searchQuery}`);
+          } else {
+            window.location.href = `https://duckduckgo.com/?q=${searchQuery}`;
+          }
+          break;
+        case 'yahoo':
+          if (openInNewTab) {
+            window.open(`https://search.yahoo.com/search?p=${searchQuery}`);
+          } else {
+            window.location.href = `https://search.yahoo.com/search?p=${searchQuery}`;
+          }
+          break;
+        default:
+          // Handle custom search engines
+          const storedSearchEngines = JSON.parse(localStorage.getItem('searchEngines')) || [];
+          const customSearchEngine = storedSearchEngines.find((engine) => engine.name.toLowerCase() === searchEngine);
+
+          if (customSearchEngine) {
+            const urlWithPlaceholder = customSearchEngine.url.replace('{searchQuery}', '%s');
+            const url = urlWithPlaceholder.replace('%s', searchQuery);
+
+            // Remove the %s placeholder from the URL
+            const urlWithoutPlaceholder = url.replace('%s', '');
+
+            console.log(`Redirecting to custom search engine: ${urlWithoutPlaceholder}`);
+            if (openInNewTab) {
+              window.open(urlWithoutPlaceholder);
+            } else {
+              window.location.href = urlWithoutPlaceholder;
+            }
+          } else {
+            console.log('No custom search engine found for:', searchEngine);
+          }
+      }
+    });
+
+    // Add search engine functionality
+    const addSearchEngineButton = document.getElementById('addSearchEngineButton');
+    const searchEngineSelect = document.querySelector('select[name="search_engine"]');
+
+    addSearchEngineButton.addEventListener('click', () => {
+      const searchEngineName = prompt('Enter the name of the search engine:');
+      const searchEngineURL = prompt('Enter the search URL for this search engine (e.g., https://www.example5.com/search?q=):');
+
+      if (searchEngineName && searchEngineURL) {
+        // Store the new search engine in localStorage
+        const searchEngines = JSON.parse(localStorage.getItem('searchEngines')) || [];
+        searchEngines.push({ name: searchEngineName, url: searchEngineURL });
+        localStorage.setItem('searchEngines', JSON.stringify(searchEngines));
+
+        // Update the dropdown menu with the new search engine
+        const newOption = document.createElement('option');
+        newOption.value = searchEngineName.toLowerCase();
+        newOption.text = searchEngineName;
+        searchEngineSelect.add(newOption);
+      }
+    });
+
+    // Load search engines from localStorage and populate the dropdown menu
+    const storedSearchEngines = JSON.parse(localStorage.getItem('searchEngines')) || [];
+    for (const searchEngine of storedSearchEngines) {
+      const newOption = document.createElement('option');
+      newOption.value = searchEngine.name.toLowerCase();
+      newOption.text = searchEngine.name;
+      searchEngineSelect.add(newOption);
+    }
+
+    // Validate custom search engine URL
+    searchEngineSelect.addEventListener('change', () => {
+      const selectedSearchEngine = searchEngineSelect.value;
+      const storedSearchEngines = JSON.parse(localStorage.getItem('searchEngines')) || [];
+      const customSearchEngine = storedSearchEngines.find((engine) => engine.name.toLowerCase() === selectedSearchEngine);
+
+      if (customSearchEngine && customSearchEngine.url.includes('{searchQuery}')) {
+        const urlWithPlaceholder = customSearchEngine.url.replace('{searchQuery}', '%s');
+        const url = urlWithPlaceholder.replace('%s', '');
+
+        if (url.includes('%s')) {
+          alert('Custom search engine URL contains more than one %s placeholder. Please correct the URL.');
+        }
+      }
+    });
+
+    // Clear custom search engines
+    const clearCustomSearchEnginesButton = document.getElementById('clearCustomSearchEnginesButton');
+    clearCustomSearchEnginesButton.addEventListener('click', () => {
+      localStorage.removeItem('searchEngines');
+      searchEngineSelect.innerHTML = '';
+      alert('Custom search engines cleared!');
+    });
+
+    // Reset custom search engines
+    const resetCustomSearchEnginesButton = document.getElementById('resetCustomSearchEnginesButton');
+    resetCustomSearchEnginesButton.addEventListener('click', () => {
+      const storedSearchEngines = [
+        { name: 'Google', url: 'https://www.google.com/search?q={searchQuery}' },
+        { name: 'Bing', url: 'https://www.bing.com/search?q={searchQuery}' },
+        { name: 'DuckDuckGo', url: 'https://duckduckgo.com/?q={searchQuery}' },
+        { name: 'Yahoo', url: 'https://search.yahoo.com/search?p={searchQuery}' },
+      ];
+      localStorage.setItem('searchEngines', JSON.stringify(storedSearchEngines));
+      searchEngineSelect.innerHTML = '';
+      for (const searchEngine of storedSearchEngines) {
+        const newOption = document.createElement('option');
+        newOption.value = searchEngine.name.toLowerCase();
+        newOption.text = searchEngine.name;
+        searchEngineSelect.add(newOption);
+      }
+      alert('Custom search engines reset to defaults!');
+    });
+
+    // Toggle dark mode
+    const brightnessButton = document.getElementById('brightnessButton');
+    const darkModeSwitch = document.getElementById('darkModeSwitch');
+
+    // Set initial dark mode state based on cookie
+    const initialDarkMode = getCookie('darkMode');
+    if (initialDarkMode === 'true') {
+      document.body.classList.add('dark');
+      brightnessButton.classList.add('dark');
+    } else {
+      document.body.classList.remove('dark');
+      brightnessButton.classList.remove('dark');
+    }
+
+    // Toggle dark mode
+    brightnessButton.addEventListener('click', () => {
+      if (document.body.classList.contains('dark')) {
+        document.body.classList.remove('dark');
+        brightnessButton.classList.remove('dark');
+        setCookie('darkMode', 'false', 365); // Set cookie to last for 1 day
+      } else {
+        document.body.classList.add('dark');
+        brightnessButton.classList.add('dark');
+        setCookie('darkMode', 'true', 365); // Set cookie to last for 1 day
+      }
+    });
+
+    // Set and get cookie functions
+    function setCookie(name, value, days) {
+      var expires = "";
+      if (days) {
+        var date = new Date();
+        date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+        expires = "; expires=" + date.toGMTString();
+      }
+      document.cookie = name + "=" + value + expires + "; path=/";
+    }
+
+    function getCookie(name) {
+      var nameEQ = name + "=";
+      var ca = document.cookie.split(';');
+      for (var i = 0; i < ca.length; i++) {
+        var c = ca[i];
+        while (c.charAt(0) == ' ') c = c.substring(1, c.length);
+        if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length, c.length);
+      }
+      return null;
+    }
+  </script>
+</body>
+</html>
